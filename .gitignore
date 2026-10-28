@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Node
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Env / secrets
+.env
+*.local
+
+# Runtime output
+clips/
+*.mp4
+*.mp3
+*.part
+*.ytdl
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/

@@ -1,0 +1,6 @@
+fastapi>=0.110
+uvicorn[standard]>=0.29
+yt-dlp
+sse-starlette>=2.0
+slowapi>=0.1.9
+pydantic-settings>=2.2
