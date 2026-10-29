@@ -26,6 +26,7 @@ def state():
 def client(tmp_path, monkeypatch, state):
     monkeypatch.setattr(settings, "clips_dir", str(tmp_path / "clips"))
     monkeypatch.setattr(ffmpeg, "check_binaries", lambda: None)
+    monkeypatch.setattr(ytdlp, "check_js_runtime", lambda: None)
 
     async def fake_fetch(url, timeout=30.0):
         state["info_calls"] += 1

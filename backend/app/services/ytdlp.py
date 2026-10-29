@@ -6,6 +6,7 @@ normalised with core.security.normalize_url before they reach this module.
 import asyncio
 import json
 import re
+import shutil
 import sys
 from collections import deque
 from collections.abc import Callable
@@ -18,9 +19,25 @@ from app.config import settings
 Format = Literal["mp4", "mp3"]
 
 _YTDLP = [sys.executable, "-m", "yt_dlp"]
+_RUNTIME_BINARIES = {"deno": "deno", "node": "node", "bun": "bun", "quickjs": "qjs"}
 _PCT_RE = re.compile(r"PCT:\s*([\d.]+)%")
 _FINAL_SUFFIXES = {".mp4", ".mp3"}
 _MAX_LINE = 1024 * 1024
+
+
+def _base_cmd() -> list[str]:
+    """yt-dlp command with the configured JavaScript runtime enabled (only deno is on by default)."""
+    return [*_YTDLP, "--js-runtimes", settings.js_runtime]
+
+
+def check_js_runtime() -> None:
+    """Raise RuntimeError at startup if the configured JavaScript runtime is not installed."""
+    binary = _RUNTIME_BINARIES[settings.js_runtime]
+    if shutil.which(binary) is None:
+        raise RuntimeError(
+            f"yt-dlp needs a JavaScript runtime for YouTube, but '{binary}' was not found on PATH. "
+            "Install Node 22+ (or Deno 2.3+), or set YTCUTTER_JS_RUNTIME to the runtime you have."
+        )
 
 
 class YtDlpError(RuntimeError):
@@ -55,7 +72,7 @@ async def _kill(proc: asyncio.subprocess.Process) -> None:
 async def fetch_info(url: str, timeout: float = 30.0) -> VideoInfo:
     """Fetch video metadata without downloading anything."""
     args = [
-        *_YTDLP,
+        *_base_cmd(),
         "--dump-single-json",
         "--no-playlist",
         "--no-warnings",
@@ -115,7 +132,7 @@ def build_download_args(
 ) -> list[str]:
     """Build the yt-dlp argument list for a section download (pure, easy to test)."""
     args = [
-        *_YTDLP,
+        *_base_cmd(),
         "--no-playlist",
         "--no-warnings",
         "--newline",

@@ -1,5 +1,9 @@
 from pathlib import Path
 
+import pytest
+
+from app.config import settings
+from app.services import ytdlp
 from app.services.ytdlp import ProgressMapper, build_download_args
 
 URL = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
@@ -17,6 +21,22 @@ def test_section_and_url_placement():
     assert args[args.index("--download-sections") + 1] == "*70.000-150.000"
     assert args[-2:] == ["--", URL]
     assert "--no-playlist" in args
+
+
+def test_js_runtime_enabled(monkeypatch):
+    monkeypatch.setattr(settings, "js_runtime", "node")
+    args = _args()
+    assert args[args.index("--js-runtimes") + 1] == "node"
+    assert args.index("--js-runtimes") < args.index("--download-sections")
+
+
+def test_check_js_runtime(monkeypatch):
+    monkeypatch.setattr(settings, "js_runtime", "node")
+    monkeypatch.setattr(ytdlp.shutil, "which", lambda name: "/usr/bin/node")
+    ytdlp.check_js_runtime()
+    monkeypatch.setattr(ytdlp.shutil, "which", lambda name: None)
+    with pytest.raises(RuntimeError, match="JavaScript runtime"):
+        ytdlp.check_js_runtime()
 
 
 def test_accurate_flag():

@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -7,6 +9,10 @@ class Settings(BaseSettings):
     cors_origins: list[str] = ["http://localhost:5173"]
     allowed_hosts: list[str] = ["localhost", "127.0.0.1"]
     clips_dir: str = "/tmp/yt-cutter"
+
+    # JavaScript runtime yt-dlp uses to solve YouTube challenges (must be on PATH).
+    # Node needs version 22+, Deno 2.3+.
+    js_runtime: Literal["deno", "node", "bun", "quickjs"] = "node"
 
     # limits
     max_video_seconds: int = 3 * 3600

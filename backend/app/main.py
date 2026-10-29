@@ -12,7 +12,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from app.api.routes import router
 from app.config import settings
 from app.core.rate_limit import limiter
-from app.services import ffmpeg
+from app.services import ffmpeg, ytdlp
 from app.services.cleanup import cleanup_loop
 from app.services.info_cache import InfoCache
 from app.services.jobs import build_manager
@@ -23,6 +23,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     ffmpeg.check_binaries()
+    ytdlp.check_js_runtime()
     manager = build_manager()
     manager.purge_orphans()  # clear leftovers from a previous run
     app.state.jobs = manager
