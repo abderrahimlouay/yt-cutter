@@ -1,1 +1,28 @@
-# TODO (milestone 5): backend (python + ffmpeg) and frontend services
+services:
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      YTCUTTER_JS_RUNTIME: node
+      YTCUTTER_CLIPS_DIR: /tmp/yt-cutter
+      YTCUTTER_ALLOWED_HOSTS: '["localhost","127.0.0.1"]'
+    # clips live in memory-backed storage and disappear when the container stops
+    tmpfs:
+      - /tmp/yt-cutter:uid=10001,gid=10001,size=2g
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    expose:
+      - "8000"          # reachable only inside the compose network
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "127.0.0.1:8080:80"   # localhost only

@@ -1,5 +1,9 @@
 # yt-cutter
 
+[![CI](https://github.com/abderrahimlouay/yt-cutter/actions/workflows/ci.yml/badge.svg)](https://github.com/abderrahimlouay/yt-cutter/actions/workflows/ci.yml)
+
+<!-- Add a screenshot or GIF: ![yt-cutter screenshot](docs/screenshot.png) -->
+
 Local-first YouTube clip cutter. Paste a link, pick a start and end time, choose MP4 or MP3, and download only the segment you need.
 
 **Stack:** FastAPI, yt-dlp, ffmpeg, React, TypeScript, Vite, Server-Sent Events.
@@ -86,7 +90,7 @@ yt-cutter/
 
 ## Getting started
 
-Requirements: Python 3.10+, Node 18+, ffmpeg on your PATH.
+Requirements: Python 3.10+, Node 22+ (builds the frontend and is the JavaScript runtime yt-dlp needs for YouTube), and ffmpeg on your PATH.
 
 ```bash
 # backend
@@ -102,6 +106,18 @@ npm run dev
 
 Open http://localhost:5173.
 
+## Run with Docker
+
+```bash
+docker compose up --build
+```
+
+Open http://localhost:8080. Only the frontend port is published, and only on `127.0.0.1`; the backend is
+reachable inside the compose network only. Clips are stored in memory-backed storage and vanish when the
+container stops. To reach the app through another hostname or IP, add it to `YTCUTTER_ALLOWED_HOSTS`
+in `docker-compose.yml`. YouTube changes often, so rebuild now and then to get a fresh yt-dlp:
+`docker compose build --no-cache backend`.
+
 ## Configuration
 
 Set in `backend/.env` (prefix `YTCUTTER_`):
@@ -109,10 +125,14 @@ Set in `backend/.env` (prefix `YTCUTTER_`):
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `CORS_ORIGINS` | `["http://localhost:5173"]` | Allowed frontend origins |
+| `ALLOWED_HOSTS` | `["localhost","127.0.0.1"]` | Accepted `Host` headers (blocks DNS rebinding) |
 | `CLIPS_DIR` | `/tmp/yt-cutter` | Where clips are written |
+| `JS_RUNTIME` | `node` | JavaScript runtime for yt-dlp: `node`, `deno`, `bun` or `quickjs` |
 | `MAX_VIDEO_SECONDS` | `10800` | Reject longer source videos |
 | `MAX_CLIP_SECONDS` | `600` | Reject longer clips |
 | `MAX_CONCURRENT_JOBS` | `2` | Parallel jobs |
+| `MAX_PENDING_JOBS` | `10` | Queued + running jobs before new ones get a 429 |
+| `JOB_TIMEOUT_SECONDS` | `900` | Cancel a job that runs longer than this |
 | `FILE_TTL_SECONDS` | `1800` | Time before clips are deleted |
 | `RATE_LIMIT_INFO` | `20/minute` | Limit for `/info` |
 | `RATE_LIMIT_CUT` | `5/minute` | Limit for `/cut` |
@@ -120,10 +140,20 @@ Set in `backend/.env` (prefix `YTCUTTER_`):
 ## Roadmap
 
 - [x] Project scaffold
-- [ ] Backend: `/info` and `/cut`
-- [ ] Job system, SSE progress, cleanup
-- [ ] Frontend UI
-- [ ] Docker setup, screenshots
+- [x] Backend: `/info` and `/cut`
+- [x] Job system, SSE progress, cleanup
+- [x] Frontend UI
+- [ ] Docker setup (verified with `docker compose up --build`)
+- [ ] Screenshots / demo GIF
+
+## Troubleshooting
+
+- **Downloads fail or formats are missing:** update yt-dlp with `pip install -U "yt-dlp[default]"`. The
+  `default` extra includes `yt-dlp-ejs`, which YouTube extraction needs.
+- **Server refuses to start, JavaScript runtime not found:** install Node 22+ (or Deno 2.3+), or set
+  `YTCUTTER_JS_RUNTIME` to the runtime you have.
+- **`Missing required binaries`:** install ffmpeg (`sudo apt install ffmpeg`).
+- **400 Bad Request from the API:** the `Host` header is not in `YTCUTTER_ALLOWED_HOSTS`.
 
 ## Disclaimer
 
