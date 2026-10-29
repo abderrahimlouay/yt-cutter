@@ -80,6 +80,19 @@ input[type="text"], select {
 }
 .button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
 .button:disabled { opacity: 0.5; cursor: not-allowed; }
+.download-button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  min-width: 0;
+}
+.download-filename {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 .error {
   background: var(--danger-bg);

@@ -7,8 +7,14 @@ interface Props {
 
 export default function DownloadButton({ jobId, filename }: Props) {
   return (
-    <a className="button primary" href={jobDownloadUrl(jobId)} download={filename ?? undefined}>
-      Download{filename ? ` ${filename}` : ""}
+    <a
+      className="button primary download-button"
+      href={jobDownloadUrl(jobId)}
+      download={filename ?? undefined}
+      title={filename ?? undefined}
+    >
+      <span>Download</span>
+      {filename && <span className="download-filename">{filename}</span>}
     </a>
   );
 }
